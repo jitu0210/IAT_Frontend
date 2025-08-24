@@ -77,7 +77,7 @@ export default function Form() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:8000/api/v1/form/submit-form",
+        "https://iat-backend-5h88.onrender.com/api/v1/form/submit-form",
         formData,
         {
           headers: {

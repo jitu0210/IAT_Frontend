@@ -46,7 +46,7 @@ export default function Groups() {
   const fetchGroups = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:8000/api/v1/groups", {
+      const response = await axios.get("https://iat-backend-5h88.onrender.com/api/v1/groups", {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -101,7 +101,7 @@ export default function Groups() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:8000/api/v1/groups",
+        "https://iat-backend-5h88.onrender.com/api/v1/groups",
         { name: groupName },
         {
           headers: {
@@ -134,7 +134,7 @@ export default function Groups() {
     if (!window.confirm("Are you sure you want to delete this group?")) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:8000/api/v1/groups/${id}`, {
+      await axios.delete(`https://iat-backend-5h88.onrender.com/api/v1/groups/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -165,7 +165,7 @@ export default function Groups() {
       }
       
       await axios.post(
-        `http://localhost:8000/api/v1/groups/${groupId}/members`,
+        `https://iat-backend-5h88.onrender.com/api/v1/groups/${groupId}/members`,
         { userId: user._id },
         {
           headers: {
@@ -191,7 +191,7 @@ export default function Groups() {
     try {
       const token = localStorage.getItem("token");
       await axios.delete(
-        `http://localhost:8000/api/v1/groups/${groupId}/members/${user._id}`,
+        `https://iat-backend-5h88.onrender.com/api/v1/groups/${groupId}/members/${user._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -218,7 +218,7 @@ export default function Groups() {
       setError("");
       
       await axios.post(
-        `http://localhost:8000/api/v1/groups/${selectedGroup._id}/ratings`,
+        `https://iat-backend-5h88.onrender.com/api/v1/groups/${selectedGroup._id}/ratings`,
         { 
           communication: ratings.communication,
           presentation: ratings.presentation,

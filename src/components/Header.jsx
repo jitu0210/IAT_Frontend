@@ -17,7 +17,7 @@ export default function Header() {
 
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/v1/user/verify-token",
+        "https://iat-backend-5h88.onrender.com/api/v1/user/verify-token",
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -46,7 +46,7 @@ export default function Header() {
       const token = localStorage.getItem("token");
       if (token) {
         await axios.post(
-          "http://localhost:8000/api/v1/user/logout",
+          "https://iat-backend-5h88.onrender.com/api/v1/user/logout",
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );

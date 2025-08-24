@@ -22,7 +22,7 @@ export default function Register() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/v1/user/register",
+        "https://iat-backend-5h88.onrender.com/api/v1/user/register",
         {
           username,
           email,

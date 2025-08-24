@@ -21,7 +21,7 @@ export default function Projects() {
   // Fetch projects from backend
   const fetchProjects = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/v1/projects");
+      const response = await axios.get("https://iat-backend-5h88.onrender.com/api/v1/projects");
       setProjects(response.data);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -80,7 +80,7 @@ export default function Projects() {
       };
 
       const response = await axios.post(
-        "http://localhost:8000/api/v1/projects/",
+        "https://iat-backend-5h88.onrender.com/api/v1/projects/",
         projectToSubmit,
         {
           headers: {
@@ -109,7 +109,7 @@ export default function Projects() {
     if (window.confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
       try {
         setLoading(true);
-        await axios.delete(`http://localhost:8000/api/v1/projects/${projectId}`);
+        await axios.delete(`https://iat-backend-5h88.onrender.com/api/v1/projects/${projectId}`);
         // Refresh the projects list after deletion
         fetchProjects();
         setError(""); // Clear any previous errors

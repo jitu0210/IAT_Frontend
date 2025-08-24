@@ -40,7 +40,7 @@ const Activity = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        "http://localhost:8000/api/v1/form/all-forms",
+        "https://iat-backend-5h88.onrender.com/api/v1/form/all-forms",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -73,7 +73,7 @@ const Activity = () => {
       setSelectedUser(userName);
       
       const response = await axios.get(
-        `http://localhost:8000/api/v1/form/user-history/${userId}`,
+        `https://iat-backend-5h88.onrender.com/api/v1/form/user-history/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

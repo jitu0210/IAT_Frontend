@@ -11,7 +11,7 @@ export default function Interns() {
   // Fetch interns from backend
   const fetchInterns = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/v1/user/all-interns");
+      const response = await axios.get("https://iat-backend-5h88.onrender.com/api/v1/user/all-interns");
       setInterns(response.data);
     } catch (err) {
       console.error(err);

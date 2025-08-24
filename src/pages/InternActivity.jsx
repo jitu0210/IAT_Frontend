@@ -13,7 +13,7 @@ const ActivityTable = () => {
       try {
         const token = localStorage.getItem("token"); // Or your auth token storage method
         const response = await axios.get(
-          "http://localhost:8000/api/v1/form/intern-activities",
+          "https://iat-backend-5h88.onrender.com/api/v1/form/intern-activities",
           {
             headers: {
               Authorization: `Bearer ${token}`,

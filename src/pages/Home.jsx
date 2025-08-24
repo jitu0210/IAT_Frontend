@@ -34,7 +34,7 @@ const ProgressButton = ({ projectId, currentProgress, onUpdate }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.patch(
-        `http://localhost:8000/api/v1/projects/${projectId}/progress`,
+        `https://iat-backend-5h88.onrender.com/api/v1/projects/${projectId}/progress`,
         { progress },
         {
           headers: {
@@ -135,7 +135,7 @@ export default function Dashboard() {
       
       // Fetch interns by department
       const internsRes = await axios.get(
-        "http://localhost:8000/api/v1/user/department-counts",
+        "https://iat-backend-5h88.onrender.com/api/v1/user/department-counts",
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -159,7 +159,7 @@ export default function Dashboard() {
 
       // Fetch projects
       const projectsRes = await axios.get(
-        "http://localhost:8000/api/v1/projects",
+        "https://iat-backend-5h88.onrender.com/api/v1/projects",
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -194,7 +194,7 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem("token");
       await axios.delete(
-        `http://localhost:8000/api/v1/projects/${id}`,
+        `https://iat-backend-5h88.onrender.com/api/v1/projects/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -216,7 +216,7 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:8000/api/v1/projects",
+        "https://iat-backend-5h88.onrender.com/api/v1/projects",
         newProject,
         {
           headers: {

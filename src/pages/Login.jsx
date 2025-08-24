@@ -18,7 +18,7 @@ export default function Login() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/v1/user/login",
+        "https://iat-backend-5h88.onrender.com/api/v1/user/login",
         { email, password }
       );
 
