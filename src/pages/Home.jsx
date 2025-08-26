@@ -152,7 +152,7 @@ export default function Dashboard() {
           (sum, item) => sum + item.value,
           0
         );
-        setStats((prev) => ({ ...prev, interns: totalInterns, groups: Math.ceil(totalInterns / 5) }));
+        setStats((prev) => ({ ...prev, interns: totalInterns, groups: 5 }));
       } else {
         setInternsData([]);
       }
