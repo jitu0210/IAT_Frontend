@@ -323,7 +323,7 @@ export default function Dashboard() {
             onClick={() => navigate("/interns")}
             className="group rounded-xl bg-[#111A2E] border border-blue-900/30 p-4 text-left hover:border-blue-500/40 transition"
           >
-            <div className="text-lg font-bold text-white">Total Interns</div>
+            <div className="text-lg font-bold text-white">Active Users</div>
             <div className="mt-1 text-3xl font-bold text-blue-400 group-hover:text-blue-300">
               {loading ? "..." : stats.interns}
             </div>

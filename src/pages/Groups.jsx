@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 
 export default function Groups() {
   const [groups, setGroups] = useState([]);
-  const [groupName, setGroupName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -21,10 +19,19 @@ export default function Groups() {
   });
   const [comments, setComments] = useState("");
   const [user, setUser] = useState(null);
-  const [userGroups, setUserGroups] = useState([]);
   const [hasRated, setHasRated] = useState({});
+  const [viewMode, setViewMode] = useState("ranking"); // ranking, participants, history
 
   const navigate = useNavigate();
+
+  // Predefined groups
+  const predefinedGroups = [
+    { id: 1, name: "Path finder", members: [], ratings: [] },
+    { id: 2, name: "Nova", members: [], ratings: [] },
+    { id: 3, name: "Fusion force", members: [], ratings: [] },
+    { id: 4, name: "Wit squad", members: [], ratings: [] },
+    { id: 5, name: "Explorers", members: [], ratings: [] }
+  ];
 
   // Check if user is authenticated
   useEffect(() => {
@@ -42,202 +49,196 @@ export default function Groups() {
     }
   }, [navigate]);
 
-  // Fetch groups from backend
-  const fetchGroups = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get("https://iat-backend-5h88.onrender.com/api/v1/groups", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+  // Load groups from localStorage or initialize with predefined groups
+  const loadGroups = () => {
+    const storedGroups = localStorage.getItem("groups");
+    const storedRatings = localStorage.getItem("groupRatings");
+    
+    if (storedGroups && storedRatings) {
+      const groupsData = JSON.parse(storedGroups);
+      const ratingsData = JSON.parse(storedRatings);
       
-      // Sort groups by total rating in descending order
-      const sortedGroups = response.data.sort((a, b) => b.totalRating - a.totalRating);
-      setGroups(sortedGroups);
+      // Check if ratings need to be reset (after 7 days)
+      const lastReset = localStorage.getItem("lastRatingReset");
+      const now = new Date().getTime();
+      const sevenDays = 7 * 24 * 60 * 60 * 1000;
       
-      // Check which groups user has rated
-      const ratedGroups = {};
-      sortedGroups.forEach(group => {
-        if (group.ratings && group.ratings.some(rating => rating.userId._id === user?._id)) {
-          ratedGroups[group._id] = true;
-        }
-      });
-      setHasRated(ratedGroups);
-      
-      // Check which groups user is a member of
-      if (user) {
-        const userGroupIds = sortedGroups
-          .filter(group => group.members.some(member => member._id === user._id))
-          .map(group => group._id);
-        setUserGroups(userGroupIds);
+      if (!lastReset || (now - parseInt(lastReset)) > sevenDays) {
+        // Reset all ratings
+        const resetGroups = groupsData.map(group => ({
+          ...group,
+          ratings: [],
+          totalRating: 0,
+          ratingCount: 0,
+          avgCommunication: 0,
+          avgPresentation: 0,
+          avgContent: 0,
+          avgHelpfulForCompany: 0,
+          avgHelpfulForInterns: 0,
+          avgParticipation: 0
+        }));
+        
+        localStorage.setItem("groups", JSON.stringify(resetGroups));
+        localStorage.setItem("groupRatings", JSON.stringify({}));
+        localStorage.setItem("lastRatingReset", now.toString());
+        
+        setGroups(resetGroups);
+        setHasRated({});
+      } else {
+        setGroups(groupsData);
+        setHasRated(ratingsData);
       }
-    } catch (err) {
-      console.error("Error fetching groups:", err);
-      if (err.response?.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        navigate("/login");
-      }
-      setError("Failed to fetch groups");
+    } else {
+      // Initialize with predefined groups
+      localStorage.setItem("groups", JSON.stringify(predefinedGroups));
+      localStorage.setItem("groupRatings", JSON.stringify({}));
+      localStorage.setItem("lastRatingReset", new Date().getTime().toString());
+      setGroups(predefinedGroups);
+      setHasRated({});
     }
   };
 
   useEffect(() => {
     if (user) {
-      fetchGroups();
+      loadGroups();
     }
   }, [user]);
 
-  // Create a new group
-  const handleCreateGroup = async () => {
-    if (!groupName.trim()) {
-      setError("Group name is required");
-      return;
+  // Calculate group statistics
+  const calculateGroupStats = (group) => {
+    if (!group.ratings || group.ratings.length === 0) {
+      return {
+        totalRating: 0,
+        ratingCount: 0,
+        avgCommunication: 0,
+        avgPresentation: 0,
+        avgContent: 0,
+        avgHelpfulForCompany: 0,
+        avgHelpfulForInterns: 0,
+        avgParticipation: 0
+      };
     }
-    
-    setLoading(true);
-    setError("");
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        "https://iat-backend-5h88.onrender.com/api/v1/groups",
-        { name: groupName },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        }
-      );
-      
-      setGroups([...groups, response.data]);
-      setGroupName("");
-      setSuccess("Group created successfully!");
-      setTimeout(() => setSuccess(""), 3000);
-      fetchGroups(); // Refresh the list
-    } catch (err) {
-      console.error("Error creating group:", err);
-      if (err.response?.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        navigate("/login");
-      }
-      setError(err.response?.data?.message || "Failed to create group. Please check your permissions.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  // Delete a group
-  const handleDeleteGroup = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this group?")) return;
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`https://iat-backend-5h88.onrender.com/api/v1/groups/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      setGroups(groups.filter((g) => g._id !== id));
-      setSuccess("Group deleted successfully!");
-      setTimeout(() => setSuccess(""), 3000);
-    } catch (err) {
-      console.error("Error deleting group:", err);
-      if (err.response?.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        navigate("/login");
-      }
-      setError("Failed to delete group. You may not have permission.");
-    }
+    const totalComm = group.ratings.reduce((sum, r) => sum + r.communication, 0);
+    const totalPres = group.ratings.reduce((sum, r) => sum + r.presentation, 0);
+    const totalCont = group.ratings.reduce((sum, r) => sum + r.content, 0);
+    const totalComp = group.ratings.reduce((sum, r) => sum + r.helpfulForCompany, 0);
+    const totalInt = group.ratings.reduce((sum, r) => sum + r.helpfulForInterns, 0);
+    const totalPart = group.ratings.reduce((sum, r) => sum + r.participation, 0);
+    
+    const count = group.ratings.length;
+    
+    return {
+      totalRating: (totalComm + totalPres + totalCont + totalComp + totalInt + totalPart) / count,
+      ratingCount: count,
+      avgCommunication: totalComm / count,
+      avgPresentation: totalPres / count,
+      avgContent: totalCont / count,
+      avgHelpfulForCompany: totalComp / count,
+      avgHelpfulForInterns: totalInt / count,
+      avgParticipation: totalPart / count
+    };
   };
 
   // Join a group
   const handleJoinGroup = async (groupId) => {
     try {
-      const token = localStorage.getItem("token");
-      
-      // Check if user is already in a group
-      if (userGroups.length > 0) {
-        setError("You can only join one group at a time. Please leave your current group first.");
-        return;
-      }
-      
-      await axios.post(
-        `https://iat-backend-5h88.onrender.com/api/v1/groups/${groupId}/members`,
-        { userId: user._id },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
+      const storedGroups = JSON.parse(localStorage.getItem("groups"));
+      const updatedGroups = storedGroups.map(group => {
+        if (group.id === groupId) {
+          // Check if user is already a member
+          if (!group.members.some(member => member.id === user._id)) {
+            return {
+              ...group,
+              members: [...group.members, {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                branch: user.branch || "Not specified",
+                joinDate: new Date().toISOString()
+              }]
+            };
           }
         }
-      );
+        return group;
+      });
       
-      // Update user groups and refresh
-      setUserGroups([groupId]);
-      fetchGroups();
+      localStorage.setItem("groups", JSON.stringify(updatedGroups));
+      setGroups(updatedGroups);
       setSuccess("Joined group successfully!");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       console.error("Error joining group:", err);
-      setError(err.response?.data?.message || "Failed to join group");
+      setError("Failed to join group");
     }
   };
 
-  // Leave a group - FIXED
+  // Leave a group
   const handleLeaveGroup = async (groupId) => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.delete(
-        `https://iat-backend-5h88.onrender.com/api/v1/groups/${groupId}/members/${user._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+      const storedGroups = JSON.parse(localStorage.getItem("groups"));
+      const updatedGroups = storedGroups.map(group => {
+        if (group.id === groupId) {
+          return {
+            ...group,
+            members: group.members.filter(member => member.id !== user._id)
+          };
         }
-      );
+        return group;
+      });
       
-      // Update user groups and refresh
-      setUserGroups(userGroups.filter(id => id !== groupId));
-      fetchGroups();
+      localStorage.setItem("groups", JSON.stringify(updatedGroups));
+      setGroups(updatedGroups);
       setSuccess("Left group successfully!");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       console.error("Error leaving group:", err);
-      setError(err.response?.data?.message || "Failed to leave group");
+      setError("Failed to leave group");
     }
   };
 
-  // Submit rating - FIXED
+  // Submit rating
   const handleSubmitRating = async () => {
     try {
-      const token = localStorage.getItem("token");
       setLoading(true);
       setError("");
       
-      await axios.post(
-        `https://iat-backend-5h88.onrender.com/api/v1/groups/${selectedGroup._id}/ratings`,
-        { 
-          communication: ratings.communication,
-          presentation: ratings.presentation,
-          content: ratings.content,
-          helpfulForCompany: ratings.helpfulForCompany,
-          helpfulForInterns: ratings.helpfulForInterns,
-          participation: ratings.participation,
-          comments 
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
+      const storedGroups = JSON.parse(localStorage.getItem("groups"));
+      const storedRatings = JSON.parse(localStorage.getItem("groupRatings")) || {};
+      
+      // Update user's rating record
+      const userRatings = storedRatings[user._id] || {};
+      userRatings[selectedGroup.id] = new Date().getTime();
+      storedRatings[user._id] = userRatings;
+      
+      // Add rating to group
+      const updatedGroups = storedGroups.map(group => {
+        if (group.id === selectedGroup.id) {
+          const newRating = {
+            userId: user._id,
+            userName: user.name,
+            communication: ratings.communication,
+            presentation: ratings.presentation,
+            content: ratings.content,
+            helpfulForCompany: ratings.helpfulForCompany,
+            helpfulForInterns: ratings.helpfulForInterns,
+            participation: ratings.participation,
+            comments: comments,
+            date: new Date().toISOString()
+          };
+          
+          return {
+            ...group,
+            ratings: [...group.ratings, newRating]
+          };
         }
-      );
-
-      // Update groups to reflect new rating
-      fetchGroups();
+        return group;
+      });
+      
+      localStorage.setItem("groups", JSON.stringify(updatedGroups));
+      localStorage.setItem("groupRatings", JSON.stringify(storedRatings));
+      
+      setGroups(updatedGroups);
       setSelectedGroup(null);
       setRatings({
         communication: 0,
@@ -252,12 +253,46 @@ export default function Groups() {
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       console.error("Error submitting rating:", err);
-      if (err.response?.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        navigate("/login");
+      setError("Failed to submit rating");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Remove rating
+  const handleRemoveRating = async (groupId) => {
+    try {
+      setLoading(true);
+      setError("");
+      
+      const storedGroups = JSON.parse(localStorage.getItem("groups"));
+      const storedRatings = JSON.parse(localStorage.getItem("groupRatings")) || {};
+      
+      // Remove user's rating record
+      if (storedRatings[user._id]) {
+        delete storedRatings[user._id][groupId];
       }
-      setError(err.response?.data?.message || "Failed to submit rating");
+      
+      // Remove rating from group
+      const updatedGroups = storedGroups.map(group => {
+        if (group.id === groupId) {
+          return {
+            ...group,
+            ratings: group.ratings.filter(rating => rating.userId !== user._id)
+          };
+        }
+        return group;
+      });
+      
+      localStorage.setItem("groups", JSON.stringify(updatedGroups));
+      localStorage.setItem("groupRatings", JSON.stringify(storedRatings));
+      
+      setGroups(updatedGroups);
+      setSuccess("Rating removed successfully!");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      console.error("Error removing rating:", err);
+      setError("Failed to remove rating");
     } finally {
       setLoading(false);
     }
@@ -278,12 +313,15 @@ export default function Groups() {
 
   // Check if user is member of a group
   const isUserMember = (groupId) => {
-    return userGroups.includes(groupId);
+    const group = groups.find(g => g.id === groupId);
+    return group && group.members.some(member => member.id === user?._id);
   };
 
-  // Check if user can rate a group
-  const canUserRate = (groupId) => {
-    return !isUserMember(groupId) && !hasRated[groupId];
+  // Check if user has rated a group
+  const hasUserRated = (groupId) => {
+    const storedRatings = JSON.parse(localStorage.getItem("groupRatings")) || {};
+    const userRatings = storedRatings[user?._id] || {};
+    return !!userRatings[groupId];
   };
 
   // Handle rating input change with validation
@@ -294,6 +332,23 @@ export default function Groups() {
     }
   };
 
+  // Navigate to group detail page
+  const handleViewGroupDetails = (group) => {
+    navigate(`/group-detail/${group.name}`, { state: { group } });
+  };
+
+  // View rating history
+  const handleViewHistory = (group) => {
+    setSelectedGroup(group);
+    setViewMode("history");
+  };
+
+  // View participants
+  const handleViewParticipants = (group) => {
+    setSelectedGroup(group);
+    setViewMode("participants");
+  };
+
   // Clear messages after a delay
   useEffect(() => {
     if (error) {
@@ -301,6 +356,13 @@ export default function Groups() {
       return () => clearTimeout(timer);
     }
   }, [error]);
+
+  // Sort groups by total rating
+  const sortedGroups = [...groups].sort((a, b) => {
+    const statsA = calculateGroupStats(a);
+    const statsB = calculateGroupStats(b);
+    return statsB.totalRating - statsA.totalRating;
+  });
 
   return (
     <div className="bg-gray-900 text-gray-200 min-h-screen flex flex-col">
@@ -312,18 +374,13 @@ export default function Groups() {
             Intern's Group
           </h1>
           <p className="text-blue-400 mb-8 text-center max-w-2xl mx-auto">
-            Create and manage intern groups. Each group can be rated on communication, presentation, content, usefulness for company and interns, and participation.
+            View and rate intern groups. Each group can be rated on communication, presentation, content, usefulness for company and interns, and participation.
           </p>
 
           {/* User info */}
           {user && (
             <div className="mb-6 p-4 bg-gray-800 rounded-lg">
               <p className="text-gray-400">Logged in as: <span className="text-blue-400 font-medium">{user.name || user.email}</span></p>
-              <p className="text-gray-400 mt-1">
-                {userGroups.length > 0 
-                  ? `You are in the group: ${groups.find(g => g._id === userGroups[0])?.name || ''}`
-                  : "You are not in any group"}
-              </p>
             </div>
           )}
 
@@ -345,149 +402,132 @@ export default function Groups() {
             </div>
           )}
 
-          {/* Create Group Input */}
-          <div className="bg-gray-800 p-6 rounded-xl mb-8">
-            <h2 className="text-2xl font-bold text-blue-400 mb-4">Create New Group</h2>
-            <div className="flex flex-col md:flex-row justify-center items-center gap-4">
-              <input
-                type="text"
-                placeholder="Enter group name"
-                value={groupName}
-                onChange={(e) => setGroupName(e.target.value)}
-                className="px-4 py-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-400 flex-grow w-full"
-              />
-              <button
-                onClick={handleCreateGroup}
-                disabled={loading}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition w-full md:w-auto disabled:opacity-50"
-              >
-                {loading ? "Creating..." : "Create Group"}
-              </button>
-            </div>
-          </div>
-
           {/* Groups List */}
           <div>
             <h2 className="text-2xl font-bold text-blue-400 mb-6">Groups Ranking</h2>
             
-            {groups.length === 0 ? (
+            {sortedGroups.length === 0 ? (
               <div className="text-center py-12 bg-gray-800 rounded-xl">
-                <p className="text-gray-400">No groups created yet. Create the first group!</p>
+                <p className="text-gray-400">No groups available.</p>
               </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {groups.map((group, index) => (
-                  <div
-                    key={group._id}
-                    className="bg-gray-800 rounded-xl p-6 flex flex-col border border-gray-700 hover:border-blue-400/30 transition-all shadow-lg"
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <span className="text-yellow-400 font-bold text-lg">
-                          {getRankSuffix(index)}
-                        </span>
-                        <h3 className="text-xl font-bold text-blue-400 mt-1">{group.name}</h3>
-                        <p className="text-sm text-gray-400 mt-1">
-                          {group.members.length} member{group.members.length !== 1 ? 's' : ''}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-green-400">
-                          {group.totalRating?.toFixed(1) || 0}/240
+                {sortedGroups.map((group, index) => {
+                  const stats = calculateGroupStats(group);
+                  const userHasRated = hasUserRated(group.id);
+                  
+                  return (
+                    <div
+                      key={group.id}
+                      className="bg-gray-800 rounded-xl p-6 flex flex-col border border-gray-700 hover:border-blue-400/30 transition-all shadow-lg"
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <span className="text-yellow-400 font-bold text-lg">
+                            {getRankSuffix(index)}
+                          </span>
+                          <h3 className="text-xl font-bold text-blue-400 mt-1">{group.name}</h3>
+                          <p className="text-sm text-gray-400 mt-1">
+                            {group.members.length} member{group.members.length !== 1 ? 's' : ''}
+                          </p>
                         </div>
-                        <div className="text-sm text-gray-400">
-                          {group.ratingCount || 0} rating{group.ratingCount !== 1 ? 's' : ''}
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-green-400">
+                            {stats.totalRating.toFixed(1)}/240
+                          </div>
+                          <div className="text-sm text-gray-400">
+                            {stats.ratingCount} rating{stats.ratingCount !== 1 ? 's' : ''}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    
-                    <div className="mt-4 text-sm text-gray-400 space-y-2">
-                      <div className="flex justify-between">
-                        <span>Communication:</span>
-                        <span className="font-medium">{group.avgCommunication?.toFixed(1) || 0}/40</span>
+                      
+                      <div className="mt-4 text-sm text-gray-400 space-y-2">
+                        <div className="flex justify-between">
+                          <span>Communication:</span>
+                          <span className="font-medium">{stats.avgCommunication.toFixed(1)}/40</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Presentation:</span>
+                          <span className="font-medium">{stats.avgPresentation.toFixed(1)}/40</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Content:</span>
+                          <span className="font-medium">{stats.avgContent.toFixed(1)}/40</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Useful for Company:</span>
+                          <span className="font-medium">{stats.avgHelpfulForCompany.toFixed(1)}/40</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Useful for Interns:</span>
+                          <span className="font-medium">{stats.avgHelpfulForInterns.toFixed(1)}/40</span>
+                        </div>
+                        <div className="flex justify-between mb-3">
+                          <span>Participation:</span>
+                          <span className="font-medium">{stats.avgParticipation.toFixed(1)}/40</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Presentation:</span>
-                        <span className="font-medium">{group.avgPresentation?.toFixed(1) || 0}/40</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Content:</span>
-                        <span className="font-medium">{group.avgContent?.toFixed(1) || 0}/40</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Useful for Company:</span>
-                        <span className="font-medium">{group.avgHelpfulForCompany?.toFixed(1) || 0}/40</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Useful for Interns:</span>
-                        <span className="font-medium">{group.avgHelpfulForInterns?.toFixed(1) || 0}/40</span>
-                      </div>
-                      <div className="flex justify-between mb-3">
-                        <span>Participation:</span>
-                        <span className="font-medium">{group.avgParticipation?.toFixed(1) || 0}/40</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2 mt-auto pt-4 border-t border-gray-700">
-                      {isUserMember(group._id) ? (
-                        <>
+                      
+                      <div className="flex flex-wrap gap-2 mt-auto pt-4 border-t border-gray-700">
+                        {userHasRated ? (
                           <button
-                            onClick={() => setSelectedGroup(group)}
-                            className="px-4 py-2 bg-gray-600 rounded-lg font-medium transition cursor-not-allowed opacity-50"
-                            disabled={true}
-                            title="Cannot rate your own group"
+                            onClick={() => handleRemoveRating(group.id)}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-medium transition flex-grow"
                           >
-                            Rate Group
+                            Remove Rating
                           </button>
+                        ) : (
                           <button
-                            onClick={() => handleLeaveGroup(group._id)}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-medium transition"
-                          >
-                            Leave Group
-                          </button>
-                        </>
-                      ) : hasRated[group._id] ? (
-                        <button
-                          className="px-4 py-2 bg-green-600 rounded-lg font-medium transition cursor-not-allowed opacity-50 w-full"
-                          disabled={true}
-                        >
-                          Already Rated
-                        </button>
-                      ) : userGroups.length > 0 ? (
-                        <button
-                          className="px-4 py-2 bg-gray-600 rounded-lg font-medium transition cursor-not-allowed opacity-50 w-full"
-                          disabled={true}
-                          title="You can only join one group"
-                        >
-                          Already in another group
-                        </button>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => setSelectedGroup(group)}
+                            onClick={() => {
+                              setSelectedGroup(group);
+                              setViewMode("rating");
+                            }}
                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition flex-grow"
                           >
                             Rate Group
                           </button>
+                        )}
+                        
+                        {isUserMember(group.id) ? (
                           <button
-                            onClick={() => handleJoinGroup(group._id)}
+                            onClick={() => handleLeaveGroup(group.id)}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-medium transition"
+                          >
+                            Leave Group
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleJoinGroup(group.id)}
                             className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-medium transition"
                           >
                             Join
                           </button>
-                        </>
-                      )}
-                      {group.members.some(member => member._id === user?._id) && (
+                        )}
+                        
                         <button
-                          onClick={() => handleDeleteGroup(group._id)}
-                          className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-medium transition ml-auto"
+                          onClick={() => handleViewParticipants(group)}
+                          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium transition flex-grow"
                         >
-                          Delete
+                          View Participants
                         </button>
-                      )}
+                        
+                        <button
+                          onClick={() => handleViewHistory(group)}
+                          className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-medium transition flex-grow"
+                        >
+                          Rating History
+                        </button>
+                        
+                        {/* <button
+                          onClick={() => handleViewGroupDetails(group)}
+                          className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg font-medium transition w-full"
+                        >
+                          View Details
+                        </button> */}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -495,7 +535,7 @@ export default function Groups() {
       </section>
 
       {/* Rating Modal */}
-      {selectedGroup && (
+      {selectedGroup && viewMode === "rating" && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
           <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold text-blue-400 mb-4">
@@ -549,7 +589,10 @@ export default function Groups() {
             
             <div className="flex justify-end gap-3 mt-6">
               <button
-                onClick={() => setSelectedGroup(null)}
+                onClick={() => {
+                  setSelectedGroup(null);
+                  setViewMode("ranking");
+                }}
                 className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg font-medium transition"
               >
                 Cancel
@@ -560,6 +603,119 @@ export default function Groups() {
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition disabled:opacity-50"
               >
                 {loading ? "Submitting..." : "Submit Rating"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Participants Modal */}
+      {selectedGroup && viewMode === "participants" && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-blue-400 mb-4">
+              {selectedGroup.name} Participants
+            </h2>
+            
+            {selectedGroup.members.length === 0 ? (
+              <p className="text-gray-400 text-center py-4">No participants yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {selectedGroup.members.map((member) => (
+                  <div key={member.id} className="bg-gray-700 p-3 rounded-lg">
+                    <p className="font-medium text-white">{member.name}</p>
+                    <p className="text-sm text-gray-400">{member.email}</p>
+                    <p className="text-sm text-gray-400">Branch: {member.branch}</p>
+                    <p className="text-xs text-gray-500">
+                      Joined: {new Date(member.joinDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => {
+                  setSelectedGroup(null);
+                  setViewMode("ranking");
+                }}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg font-medium transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rating History Modal */}
+      {selectedGroup && viewMode === "history" && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-blue-400 mb-4">
+              {selectedGroup.name} Rating History
+            </h2>
+            
+            {(!selectedGroup.ratings || selectedGroup.ratings.length === 0) ? (
+              <p className="text-gray-400 text-center py-4">No ratings yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {selectedGroup.ratings.map((rating, index) => (
+                  <div key={index} className="bg-gray-700 p-4 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="font-medium text-white">{rating.userName}</p>
+                      <p className="text-sm text-gray-400">
+                        {new Date(rating.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Communication:</span>
+                        <span className="font-medium">{rating.communication}/40</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Presentation:</span>
+                        <span className="font-medium">{rating.presentation}/40</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Content:</span>
+                        <span className="font-medium">{rating.content}/40</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Useful for Company:</span>
+                        <span className="font-medium">{rating.helpfulForCompany}/40</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Useful for Interns:</span>
+                        <span className="font-medium">{rating.helpfulForInterns}/40</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Participation:</span>
+                        <span className="font-medium">{rating.participation}/40</span>
+                      </div>
+                    </div>
+                    
+                    {rating.comments && (
+                      <div className="mt-3 pt-3 border-t border-gray-600">
+                        <p className="text-sm text-gray-300">{rating.comments}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => {
+                  setSelectedGroup(null);
+                  setViewMode("ranking");
+                }}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg font-medium transition"
+              >
+                Close
               </button>
             </div>
           </div>

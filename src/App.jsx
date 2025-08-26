@@ -12,6 +12,7 @@ import Interns from "./pages/Interns.jsx";
 import Projects from "./pages/Projects.jsx";
 import Activity from "./pages/Activity.jsx"
 import InternActivity from "./pages/InternActivity.jsx";
+import PageNotFound from "./pages/PageNotFound.jsx";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         <Route path="/projects" element={<Projects />} />
         <Route path="/activity" element={<Activity />} />
         <Route path="/intern-activity" element={<InternActivity />} />
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
     </BrowserRouter>
   );

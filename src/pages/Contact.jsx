@@ -13,7 +13,7 @@ const contacts = [
   },
   {
     title: "Coordinator Contact",
-    color: "cyan-400",
+    color: "blue-400",
     acronym: "MST",
     email: "coordinator@company.com",
     phone: "+91 91XXX XXXXX",
