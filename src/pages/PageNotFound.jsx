@@ -137,7 +137,7 @@ const PageNotFound = () => {
           <div className="text-2xl font-mono text-blue-200">
             {Math.floor(Math.random() * 23)}:{Math.floor(Math.random() * 59)}:{Math.floor(Math.random() * 59)}
           </div>
-          <p className="text-sm text-blue-400 mt-2">(This timer is completely made up)</p>
+          {/* <p className="text-sm text-blue-400 mt-2">(This timer is completely made up)</p> */}
         </div>
 
         {/* Developer Notes */}
@@ -156,12 +156,12 @@ const PageNotFound = () => {
           >
             Go Back to Safety
           </button>
-          <button 
+          {/* <button 
             onClick={() => window.location.reload()}
             className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-blue-300 rounded-lg transition-all duration-300 transform hover:-translate-y-1 border border-blue-600 font-medium"
           >
             Refresh (Maybe It's Done?)
-          </button>
+          </button> */}
         </div>
 
         {/* Footer */}
