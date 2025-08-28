@@ -542,7 +542,7 @@ export default function Dashboard() {
                       </td>
                       <td className="px-4 py-2 space-x-2 whitespace-nowrap">
                         <button
-                          onClick={() => navigate(`/projects`)}
+                          onClick={() => navigate(`/projects/${p._id}`)}
                           className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm"
                         >
                           View
@@ -600,22 +600,6 @@ export default function Dashboard() {
                 className="w-full rounded bg-[#0F172A] border border-blue-900/30 px-3 py-2"
                 required
               />
-            </div>
-            <div className="col-span-1 flex items-center space-x-2">
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={newProject.progress}
-                onChange={(e) =>
-                  setNewProject({
-                    ...newProject,
-                    progress: parseInt(e.target.value),
-                  })
-                }
-                className="flex-1"
-              />
-              <span className="w-12 text-center">{newProject.progress}%</span>
             </div>
             <div className="col-span-1 sm:col-span-2 lg:col-span-1">
               <button

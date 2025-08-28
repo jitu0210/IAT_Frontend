@@ -10,6 +10,7 @@ import Achievements from "./pages/Acheivements.jsx";
 import Groups from "./pages/Groups.jsx";
 import Interns from "./pages/Interns.jsx";
 import Projects from "./pages/Projects.jsx";
+import ProjectDetails from "./pages/ProjectDetails.jsx";
 import Activity from "./pages/Activity.jsx"
 import InternActivity from "./pages/InternActivity.jsx";
 import PageNotFound from "./pages/PageNotFound.jsx";
@@ -29,6 +30,7 @@ function App() {
         <Route path="/groups" element={<Groups />} />
         <Route path="/interns" element={<Interns />} />
         <Route path="/projects" element={<Projects />} />
+        <Route path="/project-details" element={<ProjectDetails />} />
         <Route path="/activity" element={<Activity />} />
         <Route path="/intern-activity" element={<InternActivity />} />
         <Route path="*" element={<PageNotFound />} />
