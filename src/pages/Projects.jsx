@@ -551,7 +551,7 @@ export default function Projects() {
                       <p className="text-gray-300 mb-5 text-sm">{project.description}</p>
 
                       {/* Progress bar */}
-                      <div className="mb-5">
+                      {/* <div className="mb-5">
                         <div className="flex justify-between text-xs text-gray-400 mb-1">
                           <span>Progress</span>
                           <span>{project.progress}%</span>
@@ -568,7 +568,7 @@ export default function Projects() {
                             style={{ width: `${project.progress}%` }}
                           ></div>
                         </div>
-                      </div>
+                      </div> */}
 
                       {/* Deadline */}
                       {project.deadline && (
