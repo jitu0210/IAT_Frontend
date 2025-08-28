@@ -303,7 +303,7 @@ export default function Projects() {
                 </div>
 
                 {/* Progress */}
-                <div>
+                {/* <div>
                   <label className="block text-gray-300 mb-2">
                     Progress ({newProject.progress}%)
                   </label>
@@ -316,7 +316,7 @@ export default function Projects() {
                     onChange={handleInputChange}
                     className="w-full"
                   />
-                </div>
+                </div> */}
 
                 {/* Deadline */}
                 <div>

@@ -11,7 +11,7 @@ import {
   YAxis,
   LabelList,
 } from "recharts";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; // Fixed import
 import axios from "axios";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -27,6 +27,7 @@ const COLORS = [
 ];
 
 const ProgressButton = ({ projectId, currentProgress, onUpdate }) => {
+  const navigate = useNavigate(); // Add useNavigate hook here
   const [isOpen, setIsOpen] = useState(false);
   const [progress, setProgress] = useState(currentProgress);
 
@@ -39,8 +40,8 @@ const ProgressButton = ({ projectId, currentProgress, onUpdate }) => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
 
@@ -57,7 +58,10 @@ const ProgressButton = ({ projectId, currentProgress, onUpdate }) => {
   return (
     <div className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.stopPropagation(); // Prevent event bubbling
+          navigate(`/projects/${projectId}`);
+        }}
         className={`px-3 py-1 rounded text-sm ${
           currentProgress < 30
             ? "bg-red-600 hover:bg-red-700"
@@ -132,15 +136,15 @@ export default function Dashboard() {
       setError(null);
 
       const token = localStorage.getItem("token");
-      
+
       // Fetch interns by department
       const internsRes = await axios.get(
         "https://iat-backend-5h88.onrender.com/api/v1/user/department-counts",
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
+
       if (internsRes.data && internsRes.data.length) {
         const transformedInternsData = internsRes.data.map((item) => ({
           name: item.department,
@@ -161,17 +165,16 @@ export default function Dashboard() {
       const projectsRes = await axios.get(
         "https://iat-backend-5h88.onrender.com/api/v1/projects",
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
+
       if (projectsRes.data && projectsRes.data.length) {
         setProjectsData(projectsRes.data);
         setStats((prev) => ({ ...prev, projects: projectsRes.data.length }));
       } else {
         setProjectsData([]);
       }
-
     } catch (error) {
       console.error("Error fetching data:", error);
       setError("Failed to load dashboard data. Please try again later.");
@@ -189,14 +192,15 @@ export default function Dashboard() {
   }, [fetchData]);
 
   const handleDeleteProject = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this project?")) return;
-    
+    if (!window.confirm("Are you sure you want to delete this project?"))
+      return;
+
     try {
       const token = localStorage.getItem("token");
       await axios.delete(
         `https://iat-backend-5h88.onrender.com/api/v1/projects/${id}`,
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       setProjectsData((prev) => prev.filter((p) => p._id !== id));
@@ -212,7 +216,7 @@ export default function Dashboard() {
       alert("Project name and deadline are required");
       return;
     }
-    
+
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
@@ -221,8 +225,8 @@ export default function Dashboard() {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
 
@@ -362,11 +366,13 @@ export default function Dashboard() {
           {/* Bar Chart */}
           <div className="rounded-xl bg-[#111A2E] border border-blue-900/30 p-4">
             <h2 className="text-lg font-semibold mb-4">Projects Progress</h2>
-            <div className="h-[320px] min-w-0"> {/* Added min-w-0 for chart responsiveness */}
+            <div className="h-[320px] min-w-0">
+              {" "}
+              {/* Added min-w-0 for chart responsiveness */}
               {projectsData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart 
-                    data={projectsData} 
+                  <BarChart
+                    data={projectsData}
                     barSize={38}
                     margin={{ top: 20, right: 20, left: 0, bottom: 60 }}
                   >
@@ -491,8 +497,8 @@ export default function Dashboard() {
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 {internsData.map((entry, index) => (
                   <div key={index} className="flex items-center">
-                    <div 
-                      className="w-3 h-3 mr-1" 
+                    <div
+                      className="w-3 h-3 mr-1"
                       style={{ backgroundColor: COLORS[index % COLORS.length] }}
                     ></div>
                     <span className="text-xs text-gray-300">{entry.name}</span>
@@ -508,7 +514,9 @@ export default function Dashboard() {
           <h2 className="text-lg font-semibold mb-4">Projects Overview</h2>
           <div className="overflow-x-auto">
             {projectsData.length > 0 ? (
-              <table className="w-full text-left text-gray-300 min-w-[600px]"> {/* Added min-width */}
+              <table className="w-full text-left text-gray-300 min-w-[600px]">
+                {" "}
+                {/* Added min-width */}
                 <thead className="bg-[#1E293B] text-gray-200">
                   <tr>
                     <th className="px-4 py-2">Name</th>
@@ -625,7 +633,8 @@ export default function Dashboard() {
               Completed {loading ? "..." : stats.projects} projects successfully
             </li>
             <li>
-              Organized interns into {loading ? "..." : stats.groups} working groups
+              Organized interns into {loading ? "..." : stats.groups} working
+              groups
             </li>
           </ul>
           <button

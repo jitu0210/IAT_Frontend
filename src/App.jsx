@@ -31,6 +31,7 @@ function App() {
         <Route path="/interns" element={<Interns />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/project-details" element={<ProjectDetails />} />
+        <Route path="/projects/:projectId" element={<ProjectDetails />} />
         <Route path="/activity" element={<Activity />} />
         <Route path="/intern-activity" element={<InternActivity />} />
         <Route path="*" element={<PageNotFound />} />
