@@ -70,6 +70,11 @@ export default function Achievements() {
       ? achievements
       : achievements.filter((achieve) => achieve.category === activeCategory);
 
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       filteredAchievements.forEach((_, index) => {
@@ -78,6 +83,8 @@ export default function Achievements() {
         }, index * 150);
       });
     }, 300);
+
+    
 
     return () => clearTimeout(timer);
   }, [activeCategory]);
@@ -109,7 +116,7 @@ export default function Achievements() {
             define our journey of excellence at Aartech Solonics Limited.
           </p>
           <div className="flex justify-center">
-            <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 mx-auto mb-8"></div>
+            <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 mx-auto mb-2"></div>
           </div>
         </div>
 
@@ -120,7 +127,7 @@ export default function Achievements() {
       </section>
 
       {/* Category Filter */}
-      <section className="py-8 bg-gray-900 sticky top-16 z-20 shadow-md">
+      <section className="py-5 bg-gray-900 sticky top-16 z-20 shadow-md">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-wrap justify-center gap-3">
             {categories.map((category, index) => (
