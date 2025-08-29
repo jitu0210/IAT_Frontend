@@ -18,19 +18,336 @@ export default function ProjectDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Define all checkpoints with their default values (same as before)
+  const defaultCheckpoints = [
+    // Project Initiation and Planning (9 checkpoints)
+    {
+      id: 1,
+      label: "Bid Award & Contract Review",
+      value: 100 / 42, // Equal distribution of progress
+      section: "Project Initiation and Planning",
+      status: "not started",
+    },
+    {
+      id: 2,
+      label: "Project Kick-off Meeting",
+      value: 100 / 42,
+      section: "Project Initiation and Planning",
+      status: "not started",
+    },
+    {
+      id: 3,
+      label: "Define Project Scope & Objectives",
+      value: 100 / 42,
+      section: "Project Initiation and Planning",
+      status: "not started",
+    },
+    {
+      id: 4,
+      label: "Stakeholder Identification & Analysis",
+      value: 100 / 42,
+      section: "Project Initiation and Planning",
+      status: "not started",
+    },
+    {
+      id: 5,
+      label: "Requirements Gathering & Analysis",
+      value: 100 / 42,
+      section: "Project Initiation and Planning",
+      status: "not started",
+    },
+    {
+      id: 6,
+      label: "Feasibility Study & Risk Assessment",
+      value: 100 / 42,
+      section: "Project Initiation and Planning",
+      status: "not started",
+    },
+    {
+      id: 7,
+      label: "Resource Planning",
+      value: 100 / 42,
+      section: "Project Initiation and Planning",
+      status: "not started",
+    },
+    {
+      id: 8,
+      label: "Budget Allocation & Financial Planning",
+      value: 100 / 42,
+      section: "Project Initiation and Planning",
+      status: "not started",
+    },
+    {
+      id: 9,
+      label: "Project Management Plan Development",
+      value: 100 / 42,
+      section: "Project Initiation and Planning",
+      status: "not started",
+    },
+
+    // Preliminary Design & Concept Development (4 checkpoints)
+    {
+      id: 10,
+      label: "Detailed Requirements Specification for Testing Unit",
+      value: 100 / 42,
+      section: "Preliminary Design & Concept Development",
+      status: "not started",
+    },
+    {
+      id: 11,
+      label: "Concept Design & Development",
+      value: 100 / 42,
+      section: "Preliminary Design & Concept Development",
+      status: "not started",
+    },
+    {
+      id: 12,
+      label: "Preliminary Design Review (PDR) Preparation",
+      value: 100 / 42,
+      section: "Preliminary Design & Concept Development",
+      status: "not started",
+    },
+    {
+      id: 13,
+      label: "PDR Presentation & Approval",
+      value: 100 / 42,
+      section: "Preliminary Design & Concept Development",
+      status: "not started",
+    },
+
+    // Detailed Design & Engineering (5 checkpoints)
+    {
+      id: 14,
+      label: "System Level Design",
+      value: 100 / 42,
+      section: "Detailed Design & Engineering",
+      status: "not started",
+    },
+    {
+      id: 15,
+      label: "Sub-System Detailed Design",
+      value: 100 / 42,
+      section: "Detailed Design & Engineering",
+      status: "not started",
+    },
+    {
+      id: 16,
+      label: "Component Selection & Sourcing Strategy",
+      value: 100 / 42,
+      section: "Detailed Design & Engineering",
+      status: "not started",
+    },
+    {
+      id: 17,
+      label: "Drawings & Documentation Package Development",
+      value: 100 / 42,
+      section: "Detailed Design & Engineering",
+      status: "not started",
+    },
+    {
+      id: 18,
+      label: "Design Validation & Simulation",
+      value: 100 / 42,
+      section: "Detailed Design & Engineering",
+      status: "not started",
+    },
+
+    // Procurement & Manufacturing (4 checkpoints)
+    {
+      id: 19,
+      label: "Bill of Material (BOM) Finalization",
+      value: 100 / 42,
+      section: "Procurement & Manufacturing",
+      status: "not started",
+    },
+    {
+      id: 20,
+      label: "Purchase Order (PO) Issuance & Tracking",
+      value: 100 / 42,
+      section: "Procurement & Manufacturing",
+      status: "not started",
+    },
+    {
+      id: 21,
+      label: "Component Manufacturing & Assembly",
+      value: 100 / 42,
+      section: "Procurement & Manufacturing",
+      status: "not started",
+    },
+    {
+      id: 22,
+      label: "Quality Control & Inspection of Manufactured Parts",
+      value: 100 / 42,
+      section: "Procurement & Manufacturing",
+      status: "not started",
+    },
+
+    // Assembly & Integration (5 checkpoints)
+    {
+      id: 23,
+      label: "Assembly & Integration",
+      value: 100 / 42,
+      section: "Assembly & Integration",
+      status: "not started",
+    },
+    {
+      id: 24,
+      label: "Sub-system Assembly",
+      value: 100 / 42,
+      section: "Assembly & Integration",
+      status: "not started",
+    },
+    {
+      id: 25,
+      label: "Integration of Sub-systems into Main Testing Unit",
+      value: 100 / 42,
+      section: "Assembly & Integration",
+      status: "not started",
+    },
+    {
+      id: 26,
+      label: "Cabling & Wiring Installation",
+      value: 100 / 42,
+      section: "Assembly & Integration",
+      status: "not started",
+    },
+    {
+      id: 27,
+      label: "Initial Power-up & Basic Functionality Tests",
+      value: 100 / 42,
+      section: "Assembly & Integration",
+      status: "not started",
+    },
+
+    // Testing & Validation (7 checkpoints)
+    {
+      id: 28,
+      label: "Factory Acceptance Test (FAT) Plan Development",
+      value: 100 / 42,
+      section: "Testing & Validation",
+      status: "not started",
+    },
+    {
+      id: 29,
+      label: "FAT Execution",
+      value: 100 / 42,
+      section: "Testing & Validation",
+      status: "not started",
+    },
+    {
+      id: 30,
+      label: "Defect Identification & Resolution",
+      value: 100 / 42,
+      section: "Testing & Validation",
+      status: "not started",
+    },
+    {
+      id: 31,
+      label: "Client/User Acceptance Test (UAT) Plan Development",
+      value: 100 / 42,
+      section: "Testing & Validation",
+      status: "not started",
+    },
+    {
+      id: 32,
+      label: "UAT Execution",
+      value: 100 / 42,
+      section: "Testing & Validation",
+      status: "not started",
+    },
+    {
+      id: 33,
+      label: "Performance & Safety Compliance Testing",
+      value: 100 / 42,
+      section: "Testing & Validation",
+      status: "not started",
+    },
+    {
+      id: 34,
+      label: "Test Report Generation & Review",
+      value: 100 / 42,
+      section: "Testing & Validation",
+      status: "not started",
+    },
+
+    // Deployment & Training (5 checkpoints)
+    {
+      id: 35,
+      label: "Packaging & Transportation of Testing Unit",
+      value: 100 / 42,
+      section: "Deployment & Training",
+      status: "not started",
+    },
+    {
+      id: 36,
+      label: "On-site Installation & Setup",
+      value: 100 / 42,
+      section: "Deployment & Training",
+      status: "not started",
+    },
+    {
+      id: 37,
+      label: "Site Acceptance Test (SAT) Execution",
+      value: 100 / 42,
+      section: "Deployment & Training",
+      status: "not started",
+    },
+    {
+      id: 38,
+      label: "Operational Training for End-Users",
+      value: 100 / 42,
+      section: "Deployment & Training",
+      status: "not started",
+    },
+    {
+      id: 39,
+      label: "Maintenance Training for Technical Staff",
+      value: 100 / 42,
+      section: "Deployment & Training",
+      status: "not started",
+    },
+
+    // Project Closure & Post-Deployment (3 checkpoints)
+    {
+      id: 40,
+      label: "Final Documentation Handover",
+      value: 100 / 42,
+      section: "Project Closure & Post-Deployment",
+      status: "not started",
+    },
+    {
+      id: 41,
+      label: "Warranty & Support Agreement Finalization",
+      value: 100 / 42,
+      section: "Project Closure & Post-Deployment",
+      status: "not started",
+    },
+    {
+      id: 42,
+      label: "Final Project Report & Financial Closure",
+      value: 100 / 42,
+      section: "Project Closure & Post-Deployment",
+      status: "not started",
+    },
+  ];
+
   // Fetch project data from backend
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const response = await axios.get(`https://iat-backend-5h88.onrender.com/api/v1/projects/${projectId}`);
+        const response = await axios.get(
+          `https://iat-backend-5h88.onrender.com/api/v1/projects/${projectId}`
+        );
         const projectData = response.data;
         
         setProject(projectData);
         
         // Initialize selected checkpoints based on status
         const completedCheckpoints = projectData.checkpoints
-          .filter(cp => cp.status === "completed")
-          .map(cp => cp._id);
+          ? projectData.checkpoints
+              .filter((cp) => cp.status === "completed")
+              .map((cp) => cp._id || cp.id)
+          : [];
         
         setSelected(completedCheckpoints);
         
@@ -39,9 +356,15 @@ export default function ProjectDetail() {
         const initialTargetDates = {};
         const initialExpandedSections = {};
         
-        projectData.checkpoints.forEach((cp) => {
-          initialStatuses[cp._id] = cp.status;
-          initialTargetDates[cp._id] = cp.targetDate ? new Date(cp.targetDate) : new Date();
+        // Use project checkpoints if available, otherwise use default checkpoints
+        const checkpointsToUse = projectData.checkpoints || defaultCheckpoints;
+        
+        checkpointsToUse.forEach((cp) => {
+          const cpId = cp._id || cp.id;
+          initialStatuses[cpId] = cp.status || "not started";
+          initialTargetDates[cpId] = cp.targetDate
+            ? new Date(cp.targetDate)
+            : new Date();
           
           // Initialize all sections as expanded
           if (!initialExpandedSections[cp.section]) {
@@ -86,22 +409,42 @@ export default function ProjectDetail() {
       }
       
       setSelected(newSelected);
-      setStatuses(prev => ({ ...prev, [id]: newStatus }));
+      setStatuses((prev) => ({ ...prev, [id]: newStatus }));
       
       // Update checkpoint on backend
       await axios.patch(
         `https://iat-backend-5h88.onrender.com/api/v1/projects/${projectId}/checkpoints/${id}`,
         { status: newStatus }
       );
+      
+      // Recalculate progress
+      const progress = calculateProgress(newSelected);
+      setProject((prev) => ({ ...prev, progress }));
     } catch (err) {
       console.error("Error updating checkpoint:", err);
       setError("Failed to update checkpoint");
     }
   };
 
+  const calculateProgress = (selectedCheckpoints) => {
+    // Use project checkpoints if available, otherwise use default checkpoints
+    const checkpointsToUse = project?.checkpoints || defaultCheckpoints;
+    
+    const totalValue = checkpointsToUse.reduce(
+      (sum, cp) => sum + cp.value,
+      0
+    );
+    
+    const completedValue = checkpointsToUse
+      .filter((cp) => selectedCheckpoints.includes(cp._id || cp.id))
+      .reduce((sum, cp) => sum + cp.value, 0);
+    
+    return (completedValue / totalValue) * 100;
+  };
+
   const handleStatusChange = async (id, newStatus) => {
     try {
-      setStatuses(prev => ({ ...prev, [id]: newStatus }));
+      setStatuses((prev) => ({ ...prev, [id]: newStatus }));
       
       // Update selected array based on status change
       if (newStatus === "completed" && !selected.includes(id)) {
@@ -115,6 +458,14 @@ export default function ProjectDetail() {
         `https://iat-backend-5h88.onrender.com/api/v1/projects/${projectId}/checkpoints/${id}`,
         { status: newStatus }
       );
+      
+      // Recalculate progress
+      const newSelected = newStatus === "completed" 
+        ? [...selected, id] 
+        : selected.filter((x) => x !== id);
+      
+      const progress = calculateProgress(newSelected);
+      setProject((prev) => ({ ...prev, progress }));
     } catch (err) {
       console.error("Error updating checkpoint status:", err);
       setError("Failed to update checkpoint status");
@@ -123,7 +474,7 @@ export default function ProjectDetail() {
 
   const handleDateChange = async (id, date) => {
     try {
-      setTargetDates(prev => ({ ...prev, [id]: date }));
+      setTargetDates((prev) => ({ ...prev, [id]: date }));
       
       // Update checkpoint on backend
       await axios.patch(
@@ -170,17 +521,20 @@ export default function ProjectDetail() {
     );
   }
 
-  const progress = project.progress;
+  const progress = project.progress || 0;
 
-  const completedTasks = project.checkpoints.filter((p) =>
-    selected.includes(p._id)
+  // Use project checkpoints if available, otherwise use default checkpoints
+  const allCheckpoints = project.checkpoints || defaultCheckpoints;
+  
+  const completedTasks = allCheckpoints.filter((p) =>
+    selected.includes(p._id || p.id)
   );
-  const remainingTasks = project.checkpoints.filter(
-    (p) => !selected.includes(p._id)
+  const remainingTasks = allCheckpoints.filter(
+    (p) => !selected.includes(p._id || p.id)
   );
 
   // Group checkpoints by section
-  const checkpointsBySection = project.checkpoints.reduce((acc, cp) => {
+  const checkpointsBySection = allCheckpoints.reduce((acc, cp) => {
     if (!acc[cp.section]) {
       acc[cp.section] = [];
     }
@@ -365,7 +719,7 @@ export default function ProjectDetail() {
               {completedTasks.length > 0 ? (
                 <ul className="text-gray-300 text-sm space-y-2 max-h-40 overflow-y-auto pr-2">
                   {completedTasks.map((t) => (
-                    <li key={t._id} className="flex items-start">
+                    <li key={t._id || t.id} className="flex items-start">
                       <span className="text-green-400 mr-2">•</span>
                       <span className="text-sm">{t.label}</span>
                     </li>
@@ -437,7 +791,7 @@ export default function ProjectDetail() {
               {remainingTasks.length > 0 ? (
                 <ul className="text-gray-300 text-sm space-y-2 max-h-40 overflow-y-auto pr-2">
                   {remainingTasks.map((t) => (
-                    <li key={t._id} className="flex items-start">
+                    <li key={t._id || t.id} className="flex items-start">
                       <span className="text-red-400 mr-2">•</span>
                       <span className="text-sm">{t.label}</span>
                     </li>
@@ -459,7 +813,7 @@ export default function ProjectDetail() {
               Project Checkpoints
             </h2>
             <span className="text-sm text-blue-400 bg-blue-900/30 px-3 py-1 rounded-full">
-              {completedTasks.length}/{project.checkpoints.length} completed
+              {completedTasks.length}/{allCheckpoints.length} completed
             </span>
           </div>
 
@@ -482,17 +836,18 @@ export default function ProjectDetail() {
                 {expandedSections[section] && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {checkpoints.map((cp) => {
-                      const currentStatus = statuses[cp._id] || "not started";
-                      const targetDate = targetDates[cp._id] || new Date();
+                      const cpId = cp._id || cp.id;
+                      const currentStatus = statuses[cpId] || "not started";
+                      const targetDate = targetDates[cpId] || new Date();
                       const daysUntilTarget = getDaysUntilTarget(targetDate);
 
                       return (
                         <div
-                          key={cp._id}
+                          key={cpId}
                           className={`flex flex-col p-4 rounded-xl border transition-all duration-300 ${getBorderColor(
                             currentStatus
                           )} ${
-                            selected.includes(cp._id)
+                            selected.includes(cpId)
                               ? "bg-blue-900/30 shadow-lg scale-[1.02]"
                               : "bg-gradient-to-b from-gray-800/50 to-gray-900/70 hover:bg-gray-700/50"
                           }`}
@@ -500,8 +855,8 @@ export default function ProjectDetail() {
                           <div className="flex items-start mb-2">
                             <input
                               type="checkbox"
-                              checked={selected.includes(cp._id)}
-                              onChange={() => handleToggle(cp._id)}
+                              checked={selected.includes(cpId)}
+                              onChange={() => handleToggle(cpId)}
                               className="w-5 h-5 accent-blue-500 mt-0.5 flex-shrink-0 mr-3 cursor-pointer"
                             />
                             <div className="flex-1">
@@ -530,7 +885,7 @@ export default function ProjectDetail() {
                             </label>
                             <DatePicker
                               selected={targetDate}
-                              onChange={(date) => handleDateChange(cp._id, date)}
+                              onChange={(date) => handleDateChange(cpId, date)}
                               className="text-xs p-1 rounded w-full bg-gray-700 border border-gray-600 text-white"
                               dateFormat="dd-MM-yyyy"
                               customInput={
@@ -568,7 +923,7 @@ export default function ProjectDetail() {
                             <select
                               value={currentStatus}
                               onChange={(e) =>
-                                handleStatusChange(cp._id, e.target.value)
+                                handleStatusChange(cpId, e.target.value)
                               }
                               className={`text-xs p-1 rounded w-full bg-gray-700 border ${getBorderColor(
                                 currentStatus

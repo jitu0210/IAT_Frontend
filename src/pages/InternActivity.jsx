@@ -12,6 +12,10 @@ const ActivityTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
+
+  useEffect(() => {
     const fetchActivities = async () => {
       try {
         const token = localStorage.getItem("token");
