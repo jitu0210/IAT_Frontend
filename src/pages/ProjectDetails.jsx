@@ -333,45 +333,42 @@ export default function ProjectDetail() {
 
   // Fetch project data from backend
   useEffect(() => {
+    // In your useEffect where you fetch the project
     const fetchProject = async () => {
       try {
         const response = await axios.get(
           `https://iat-backend-5h88.onrender.com/api/v1/projects/${projectId}`
         );
         const projectData = response.data;
-        
+
         setProject(projectData);
-        
+
         // Initialize selected checkpoints based on status
         const completedCheckpoints = projectData.checkpoints
           ? projectData.checkpoints
               .filter((cp) => cp.status === "completed")
-              .map((cp) => cp._id || cp.id)
+              .map((cp) => cp._id) // Use _id instead of id
           : [];
-        
+
         setSelected(completedCheckpoints);
-        
+
         // Initialize statuses and target dates
         const initialStatuses = {};
         const initialTargetDates = {};
         const initialExpandedSections = {};
-        
-        // Use project checkpoints if available, otherwise use default checkpoints
-        const checkpointsToUse = projectData.checkpoints || defaultCheckpoints;
-        
-        checkpointsToUse.forEach((cp) => {
-          const cpId = cp._id || cp.id;
-          initialStatuses[cpId] = cp.status || "not started";
-          initialTargetDates[cpId] = cp.targetDate
+
+        projectData.checkpoints.forEach((cp) => {
+          initialStatuses[cp._id] = cp.status || "not started";
+          initialTargetDates[cp._id] = cp.targetDate
             ? new Date(cp.targetDate)
             : new Date();
-          
+
           // Initialize all sections as expanded
           if (!initialExpandedSections[cp.section]) {
             initialExpandedSections[cp.section] = true;
           }
         });
-        
+
         setStatuses(initialStatuses);
         setTargetDates(initialTargetDates);
         setExpandedSections(initialExpandedSections);
@@ -382,7 +379,7 @@ export default function ProjectDetail() {
         setLoading(false);
       }
     };
-    
+
     fetchProject();
   }, [projectId]);
 
@@ -399,7 +396,7 @@ export default function ProjectDetail() {
     try {
       let newStatus;
       let newSelected;
-      
+
       if (selected.includes(id)) {
         newSelected = selected.filter((x) => x !== id);
         newStatus = "not started";
@@ -407,16 +404,16 @@ export default function ProjectDetail() {
         newSelected = [...selected, id];
         newStatus = "completed";
       }
-      
+
       setSelected(newSelected);
       setStatuses((prev) => ({ ...prev, [id]: newStatus }));
-      
+
       // Update checkpoint on backend
       await axios.patch(
         `https://iat-backend-5h88.onrender.com/api/v1/projects/${projectId}/checkpoints/${id}`,
         { status: newStatus }
       );
-      
+
       // Recalculate progress
       const progress = calculateProgress(newSelected);
       setProject((prev) => ({ ...prev, progress }));
@@ -429,41 +426,39 @@ export default function ProjectDetail() {
   const calculateProgress = (selectedCheckpoints) => {
     // Use project checkpoints if available, otherwise use default checkpoints
     const checkpointsToUse = project?.checkpoints || defaultCheckpoints;
-    
-    const totalValue = checkpointsToUse.reduce(
-      (sum, cp) => sum + cp.value,
-      0
-    );
-    
+
+    const totalValue = checkpointsToUse.reduce((sum, cp) => sum + cp.value, 0);
+
     const completedValue = checkpointsToUse
       .filter((cp) => selectedCheckpoints.includes(cp._id || cp.id))
       .reduce((sum, cp) => sum + cp.value, 0);
-    
+
     return (completedValue / totalValue) * 100;
   };
 
   const handleStatusChange = async (id, newStatus) => {
     try {
       setStatuses((prev) => ({ ...prev, [id]: newStatus }));
-      
+
       // Update selected array based on status change
       if (newStatus === "completed" && !selected.includes(id)) {
         setSelected([...selected, id]);
       } else if (newStatus !== "completed" && selected.includes(id)) {
         setSelected(selected.filter((x) => x !== id));
       }
-      
+
       // Update checkpoint on backend
       await axios.patch(
         `https://iat-backend-5h88.onrender.com/api/v1/projects/${projectId}/checkpoints/${id}`,
         { status: newStatus }
       );
-      
+
       // Recalculate progress
-      const newSelected = newStatus === "completed" 
-        ? [...selected, id] 
-        : selected.filter((x) => x !== id);
-      
+      const newSelected =
+        newStatus === "completed"
+          ? [...selected, id]
+          : selected.filter((x) => x !== id);
+
       const progress = calculateProgress(newSelected);
       setProject((prev) => ({ ...prev, progress }));
     } catch (err) {
@@ -475,7 +470,7 @@ export default function ProjectDetail() {
   const handleDateChange = async (id, date) => {
     try {
       setTargetDates((prev) => ({ ...prev, [id]: date }));
-      
+
       // Update checkpoint on backend
       await axios.patch(
         `https://iat-backend-5h88.onrender.com/api/v1/projects/${projectId}/checkpoints/${id}`,
@@ -510,7 +505,7 @@ export default function ProjectDetail() {
       <div className="min-h-screen bg-[#0B1220] text-white flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-400 mb-4">{error || "Project not found"}</p>
-          <button 
+          <button
             onClick={() => window.history.back()}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
           >
@@ -525,7 +520,7 @@ export default function ProjectDetail() {
 
   // Use project checkpoints if available, otherwise use default checkpoints
   const allCheckpoints = project.checkpoints || defaultCheckpoints;
-  
+
   const completedTasks = allCheckpoints.filter((p) =>
     selected.includes(p._id || p.id)
   );
