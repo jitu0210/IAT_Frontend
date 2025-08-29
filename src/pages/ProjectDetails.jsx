@@ -416,6 +416,14 @@ export default function ProjectDetail() {
 
       // Recalculate progress
       const progress = calculateProgress(newSelected);
+
+      // Update project progress on backend
+      await axios.patch(
+        `https://iat-backend-5h88.onrender.com/api/v1/projects/${projectId}`,
+        { progress }
+      );
+
+      // Update local state
       setProject((prev) => ({ ...prev, progress }));
     } catch (err) {
       console.error("Error updating checkpoint:", err);
@@ -441,11 +449,16 @@ export default function ProjectDetail() {
       setStatuses((prev) => ({ ...prev, [id]: newStatus }));
 
       // Update selected array based on status change
+      let newSelected;
       if (newStatus === "completed" && !selected.includes(id)) {
-        setSelected([...selected, id]);
+        newSelected = [...selected, id];
       } else if (newStatus !== "completed" && selected.includes(id)) {
-        setSelected(selected.filter((x) => x !== id));
+        newSelected = selected.filter((x) => x !== id);
+      } else {
+        newSelected = [...selected];
       }
+
+      setSelected(newSelected);
 
       // Update checkpoint on backend
       await axios.patch(
@@ -454,12 +467,15 @@ export default function ProjectDetail() {
       );
 
       // Recalculate progress
-      const newSelected =
-        newStatus === "completed"
-          ? [...selected, id]
-          : selected.filter((x) => x !== id);
-
       const progress = calculateProgress(newSelected);
+
+      // Update project progress on backend
+      await axios.patch(
+        `https://iat-backend-5h88.onrender.com/api/v1/projects/${projectId}`,
+        { progress }
+      );
+
+      // Update local state
       setProject((prev) => ({ ...prev, progress }));
     } catch (err) {
       console.error("Error updating checkpoint status:", err);
