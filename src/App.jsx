@@ -14,6 +14,7 @@ import ProjectDetails from "./pages/ProjectDetails.jsx";
 import Activity from "./pages/Activity.jsx"
 import InternActivity from "./pages/InternActivity.jsx";
 import PageNotFound from "./pages/PageNotFound.jsx";
+import ForgetPassword from "./pages/ForgetPassword.jsx";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
         <Route path="/projects/:projectId" element={<ProjectDetails />} />
         <Route path="/activity" element={<Activity />} />
         <Route path="/intern-activity" element={<InternActivity />} />
+        <Route path="/forgot-password" element={<ForgetPassword />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </BrowserRouter>
