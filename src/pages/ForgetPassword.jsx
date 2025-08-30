@@ -8,10 +8,14 @@ export default function ForgetPassword() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
+  
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setSubmitted(true);
   };
+
+  
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">

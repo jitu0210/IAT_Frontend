@@ -16,6 +16,10 @@ const Activity = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
+
+  useEffect(() => {
     // Check if user is authenticated
     const token = localStorage.getItem("token");
     if (!token) {

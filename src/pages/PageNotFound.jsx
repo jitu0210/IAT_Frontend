@@ -6,6 +6,10 @@ const PageNotFound = () => {
   const [coffeeSpill, setCoffeeSpill] = useState(false);
 
   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
+
+  useEffect(() => {
     // Simulate progress
     const timer = setInterval(() => {
       setProgress(prev => {

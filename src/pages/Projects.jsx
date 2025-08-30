@@ -19,6 +19,10 @@ export default function Projects() {
   const [editingProject, setEditingProject] = useState(null);
   const navigate = useNavigate(); 
 
+  useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
+
   // Fetch projects from backend
   const fetchProjects = async () => {
     try {

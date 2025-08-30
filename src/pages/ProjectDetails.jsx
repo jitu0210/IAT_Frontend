@@ -331,6 +331,10 @@ export default function ProjectDetail() {
     },
   ];
 
+  useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
+
   // Fetch project data from backend
   useEffect(() => {
     // In your useEffect where you fetch the project
