@@ -61,31 +61,31 @@ export default function Groups() {
     }
   }, [navigate]);
 
-  // Fetch real-time rating updates
+  // Fetch real-time group total updates
   useEffect(() => {
     let intervalId;
 
-    const fetchLiveRatings = async () => {
+    const fetchGroupTotals = async () => {
       try {
-        const response = await api.get("/groups/live-ratings");
+        const response = await api.get("/groups/group-totals");
         if (response.data && response.data.length > 0) {
           setLiveRatings((prevRatings) => {
-            // Keep only the latest 15 ratings
+            // Keep only the latest 15 group totals
             const newRatings = [...prevRatings, ...response.data];
             return newRatings.slice(-15);
           });
         }
       } catch (err) {
-        console.error("Error fetching live ratings:", err);
+        console.error("Error fetching group totals:", err);
       }
     };
 
     if (showLiveRanking) {
       // Fetch immediately
-      fetchLiveRatings();
+      fetchGroupTotals();
 
       // Then set up interval for periodic updates
-      intervalId = setInterval(fetchLiveRatings, 5000);
+      intervalId = setInterval(fetchGroupTotals, 5000);
     }
 
     return () => {
@@ -112,9 +112,11 @@ export default function Groups() {
 
       const ratingStatus = {};
       groupsData.forEach((group) => {
-        if (group.ratings) {
+        if (group.ratings && user) {
           const userRating = group.ratings.find((r) => r.userId === user._id);
           ratingStatus[group._id] = !!userRating;
+        } else {
+          ratingStatus[group._id] = false;
         }
       });
 
@@ -212,20 +214,22 @@ export default function Groups() {
         comments: comments,
       });
 
-      // Add to live ratings
-      if (response.data && response.data.newRating) {
+      // Add group total to live ratings
+      if (response.data && response.data.updatedGroup) {
+        const updatedGroup = response.data.updatedGroup;
+        const stats = calculateGroupStats(updatedGroup);
+        
         setLiveRatings((prev) => [
           ...prev,
           {
             id: Date.now(),
-            groupName: selectedGroup.name,
-            points: calculateTotal(),
+            groupName: updatedGroup.name,
+            totalPoints: stats.totalRating,
             time: new Date().toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
             }),
             isUser: true,
-            details: response.data.newRating,
           },
         ]);
       }
@@ -281,11 +285,17 @@ export default function Groups() {
   };
 
   const isUserMember = (groupId) => {
-    return userGroup && userGroup._id === groupId;
+    if (!userGroup || !groupId) return false;
+    return userGroup._id === groupId;
   };
 
   const hasUserRated = (groupId) => {
-    return hasRated[groupId] || false;
+    if (!user || !user._id) return false;
+    
+    const group = groups.find(g => g._id === groupId);
+    if (!group || !group.ratings) return false;
+    
+    return group.ratings.some(rating => rating.userId === user._id);
   };
 
   const handleRatingChange = (category, value) => {
@@ -374,10 +384,10 @@ export default function Groups() {
                       stroke="currentColor"
                     >
                       <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                       />
                     </svg>
                   </div>
@@ -466,6 +476,8 @@ export default function Groups() {
               ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
                   {sortedGroups.map((group, index) => {
+                    if (!group || !group._id) return null;
+                    
                     const stats = calculateGroupStats(group);
                     const userHasRated = hasUserRated(group._id);
                     const isMember = isUserMember(group._id);
@@ -611,13 +623,13 @@ export default function Groups() {
                               disabled={
                                 loading ||
                                 isUserMember(group._id) ||
-                                !!userGroup
+                                hasUserRated(group._id)
                               }
                               title={
                                 isUserMember(group._id)
                                   ? "Cannot rate your own group"
-                                  : userGroup
-                                  ? "You can only rate one group"
+                                  : hasUserRated(group._id)
+                                  ? "You already rated this group"
                                   : ""
                               }
                             >
@@ -631,7 +643,7 @@ export default function Groups() {
                               </svg>
                               {isUserMember(group._id)
                                 ? "Your Group"
-                                : userGroup
+                                : hasUserRated(group._id)
                                 ? "Already Rated"
                                 : "Rate Group"}
                             </button>
@@ -732,7 +744,7 @@ export default function Groups() {
           <div className="w-80 bg-gray-800 border-l border-gray-700 flex flex-col hidden lg:flex">
             <div className="p-4 border-b border-gray-700 bg-gray-900 flex justify-between items-center">
               <h2 className="text-xl font-bold text-blue-400">
-                Live Ranking Updates
+                Group Total Updates
               </h2>
               <button
                 onClick={() => setShowLiveRanking(false)}
@@ -786,29 +798,15 @@ export default function Groups() {
                       </div>
                       <div className="flex justify-between mt-1">
                         <span className="text-sm text-gray-300">
-                          Received rating:
+                          Total points:
                         </span>
                         <span className="font-bold text-green-400">
-                          +{rating.points} pts
+                          {rating.totalPoints.toFixed(1)}
                         </span>
                       </div>
-                      {rating.details && (
-                        <div className="mt-2 text-xs text-gray-400 grid grid-cols-2 gap-1">
-                          <div>Comm: {rating.details.communication}/40</div>
-                          <div>Pres: {rating.details.presentation}/40</div>
-                          <div>Content: {rating.details.content}/40</div>
-                          <div>
-                            Company: {rating.details.helpfulForCompany}/40
-                          </div>
-                          <div>
-                            Interns: {rating.details.helpfulForInterns}/40
-                          </div>
-                          <div>Part: {rating.details.participation}/40</div>
-                        </div>
-                      )}
                       {rating.isUser && (
                         <div className="text-xs text-blue-400 mt-1">
-                          Your rating
+                          Your rating updated this total
                         </div>
                       )}
                     </div>
@@ -830,7 +828,7 @@ export default function Groups() {
                           d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
                         />
                       </svg>
-                      <p>Live rating updates will appear here</p>
+                      <p>Group total updates will appear here</p>
                     </div>
                   )}
                 </div>
