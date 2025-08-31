@@ -704,7 +704,7 @@ export default function Groups() {
                               className="h-4 w-4 mr-1"
                               viewBox="0 0 20 20"
                               fill="currentColor"
-                            >
+                              >
                               <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
                             </svg>
                             Participants
@@ -801,7 +801,7 @@ export default function Groups() {
                           Total points:
                         </span>
                         <span className="font-bold text-green-400">
-                          {rating.totalPoints.toFixed(1)}
+                          {rating.totalPoints?.toFixed(1) || '0.0'}
                         </span>
                       </div>
                       {rating.isUser && (
@@ -1107,25 +1107,25 @@ export default function Groups() {
                       <div className="flex justify-between">
                         <span className="text-gray-400">Communication:</span>
                         <span className="font-medium">
-                          {rating.communication}/40
+                          {(rating.communication || 0)}/40
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Presentation:</span>
                         <span className="font-medium">
-                          {rating.presentation}/40
+                          {(rating.presentation || 0)}/40
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Content:</span>
-                        <span className="font-medium">{rating.content}/40</span>
+                        <span className="font-medium">{(rating.content || 0)}/40</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">
                           Useful for Company:
                         </span>
                         <span className="font-medium">
-                          {rating.helpfulForCompany}/40
+                          {(rating.helpfulForCompany || 0)}/40
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -1133,13 +1133,13 @@ export default function Groups() {
                           Useful for Interns:
                         </span>
                         <span className="font-medium">
-                          {rating.helpfulForInterns}/40
+                          {(rating.helpfulForInterns || 0)}/40
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Participation:</span>
                         <span className="font-medium">
-                          {rating.participation}/40
+                          {(rating.participation || 0)}/40
                         </span>
                       </div>
                     </div>
