@@ -62,7 +62,6 @@ export default function Groups() {
   }, [navigate]);
 
   // Fetch real-time group total updates
-  // Fetch real-time group total updates
   useEffect(() => {
     let intervalId;
 
@@ -70,7 +69,11 @@ export default function Groups() {
       try {
         const response = await api.get("/groups/group-totals");
         if (response.data && response.data.length > 0) {
-          setLiveRatings(response.data); // Replace instead of appending
+          setLiveRatings((prevRatings) => {
+            // Keep only the latest 15 group totals
+            const newRatings = [...prevRatings, ...response.data];
+            return newRatings.slice(-15);
+          });
         }
       } catch (err) {
         console.error("Error fetching group totals:", err);
@@ -211,10 +214,24 @@ export default function Groups() {
         comments: comments,
       });
 
-      // Refresh the live ratings after submitting
-      const totalsResponse = await api.get("/groups/group-totals");
-      if (totalsResponse.data && totalsResponse.data.length > 0) {
-        setLiveRatings(totalsResponse.data);
+      // Add group total to live ratings
+      if (response.data && response.data.updatedGroup) {
+        const updatedGroup = response.data.updatedGroup;
+        const stats = calculateGroupStats(updatedGroup);
+        
+        setLiveRatings((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            groupName: updatedGroup.name,
+            totalPoints: stats.totalRating,
+            time: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            isUser: true,
+          },
+        ]);
       }
 
       await loadGroups();
@@ -274,11 +291,11 @@ export default function Groups() {
 
   const hasUserRated = (groupId) => {
     if (!user || !user._id) return false;
-
-    const group = groups.find((g) => g._id === groupId);
+    
+    const group = groups.find(g => g._id === groupId);
     if (!group || !group.ratings) return false;
-
-    return group.ratings.some((rating) => rating.userId === user._id);
+    
+    return group.ratings.some(rating => rating.userId === user._id);
   };
 
   const handleRatingChange = (category, value) => {
@@ -367,10 +384,10 @@ export default function Groups() {
                       stroke="currentColor"
                     >
                       <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                       />
                     </svg>
                   </div>
@@ -460,7 +477,7 @@ export default function Groups() {
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
                   {sortedGroups.map((group, index) => {
                     if (!group || !group._id) return null;
-
+                    
                     const stats = calculateGroupStats(group);
                     const userHasRated = hasUserRated(group._id);
                     const isMember = isUserMember(group._id);
